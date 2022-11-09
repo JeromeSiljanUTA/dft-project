@@ -18,11 +18,14 @@ def identify(maxima):
     Parameters:
     maxima: list of x values of two highest peaks (two most promiment frequencies)
 
-    Returns: 
+    Returns:
     keypad value that corresponds with key pressed"""
 
+    # known frequencies for key presses
     low_freqs = np.array([697, 770, 852, 941])
     high_freqs = np.array([1209, 1336, 1477, 1633])
+
+    # finding closest known frequency given maxima of DFT
     close_low = low_freqs[(np.abs(low_freqs - maxima[0])).argmin()]
     close_high = high_freqs[(np.abs(high_freqs - maxima[1])).argmin()]
 
@@ -42,16 +45,19 @@ def find_maxima(y_vals, peaks):
     x values of highest peaks.
 
     """
+
+    # creating an array of just the peaks
     peak_y = [y_vals[peak] for peak in peaks]
 
-    arr = [0, 0]
+    # gather only the top two peaks and set them to be prominent_frequencies
+    prominent_frequencies = [0, 0]
     for idx in range(2):
-        index = peak_y.index(max(peak_y))
-        arr[idx] = peaks[index]
-        peaks.pop(index)
-        peak_y.pop(index)
+        index = peak_y.index(max(peak_y))  # find biggest freqeuncy
+        prominent_frequencies[idx] = peaks[index]  # add it to prominent_frequencies
+        peaks.pop(index)  # remove the entry from peaks (x values)
+        peak_y.pop(index)  # remove the entry from peak_y (y values)
 
-    return [min(arr), max(arr)]
+    return [min(prominent_frequencies), max(prominent_frequencies)]
 
 
 def main():
@@ -60,22 +66,32 @@ def main():
         sampling_rate, in_wave = read(f"project data/{sound}")
         wave_size = in_wave.size
 
+        # wave is the values of the DFT that are to the right of the x axis
+        # it also makes all the values positive
         wave = [
             np.abs(i)
             for i in zip(fftfreq(wave_size, 1 / sampling_rate), fft(in_wave))
             if i[0] > 0
         ]
+
+        # taking only the y values of wave
         _, y_vals = zip(*wave)
 
+        # finding the peaks of the DFT and storing them in a Python list
         peaks, _ = find_peaks(y_vals)
         peaks = list(peaks)
+
+        # identifying two most prominent frequencies
         maxima = find_maxima(y_vals, peaks)
+
+        # accounting for error and finding key pressed
         result = identify(maxima)
         print(f"{sound} is {result}")
 
 
 sounds = os.listdir("project data")
 
+# dictionary of keys with their respective frequencies
 keypad = {
     (697, 1209): "1",
     (697, 1336): "2",
@@ -95,5 +111,6 @@ keypad = {
     (941, 1633): "D",
 }
 
+# start the main function
 if __name__ == "__main__":
     main()
