@@ -3,7 +3,7 @@ dft.py takes a wav file of DTMF presses, runs them through a DFT and identifies 
 """
 
 # imports
-import os
+import argparse
 
 import numpy as np
 from matplotlib import pyplot as plt
@@ -62,34 +62,38 @@ def find_maxima(y_vals, peaks):
 
 def main():
     """Decodes wav file"""
-    for sound in sounds:
-        sampling_rate, in_wave = read(f"project data/{sound}")
-        wave_size = in_wave.size
 
-        # wave is the values of the DFT that are to the right of the x axis
-        # it also makes all the values positive
-        wave = [
-            np.abs(i)
-            for i in zip(fftfreq(wave_size, 1 / sampling_rate), fft(in_wave))
-            if i[0] > 0
-        ]
+    # handles command line arguments
+    parser = argparse.ArgumentParser()
+    parser.add_argument(dest="file_path", help="add wav file path")
+    args = parser.parse_args()
 
-        # taking only the y values of wave
-        _, y_vals = zip(*wave)
+    # reads wav file
+    sampling_rate, in_wave = read(f"{args.file_path}")
+    wave_size = in_wave.size
 
-        # finding the peaks of the DFT and storing them in a Python list
-        peaks, _ = find_peaks(y_vals)
-        peaks = list(peaks)
+    # wave is the values of the DFT that are to the right of the x axis
+    # it also makes all the values positive
+    wave = [
+        np.abs(i)
+        for i in zip(fftfreq(wave_size, 1 / sampling_rate), fft(in_wave))
+        if i[0] > 0
+    ]
 
-        # identifying two most prominent frequencies
-        maxima = find_maxima(y_vals, peaks)
+    # taking only the y values of wave
+    _, y_vals = zip(*wave)
 
-        # accounting for error and finding key pressed
-        result = identify(maxima)
-        print(f"{sound} is {result}")
+    # finding the peaks of the DFT and storing them in a Python list
+    peaks, _ = find_peaks(y_vals)
+    peaks = list(peaks)
 
+    # identifying two most prominent frequencies
+    maxima = find_maxima(y_vals, peaks)
 
-sounds = os.listdir("project data")
+    # accounting for error and finding key pressed
+    result = identify(maxima)
+    print(f"{args.file_path} is {result}")
+
 
 # dictionary of keys with their respective frequencies
 keypad = {
