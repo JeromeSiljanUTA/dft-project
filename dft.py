@@ -6,7 +6,6 @@ dft.py takes a wav file of DTMF presses, runs them through a DFT and identifies 
 import argparse
 
 import numpy as np
-from matplotlib import pyplot as plt
 from scipy.fft import fft, fftfreq
 from scipy.io.wavfile import read
 from scipy.signal import find_peaks
