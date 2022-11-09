@@ -1,39 +1,45 @@
 """
-dtmf
-dft takes audio files and figures out what button was pressed
+dft.py takes audio files of DTMF presses, runs them through a DFT and identifies the key pressed.
 """
 
+# imports
 import os
+
 import numpy as np
 from matplotlib import pyplot as plt
-from scipy.io.wavfile import read
 from scipy.fft import fft, fftfreq
+from scipy.io.wavfile import read
 from scipy.signal import find_peaks
 
 
 def closest(maxima):
-    low_freqs = [1209, 1336, 1477, 1633]
-    high_freqs = [697, 770, 852, 941]
-    dist = 0
+    """identifies keypress"""
+
+    low_freqs = np.array([697, 770, 852, 941])
+    high_freqs = np.array([1209, 1336, 1477, 1633])
+    close_low = low_freqs[(np.abs(low_freqs - maxima[0])).argmin()]
+    close_high = high_freqs[(np.abs(high_freqs - maxima[1])).argmin()]
+
     keypad = {
-        "1": [697, 1209],
-        "2": [697, 1336],
-        "3": [697, 1477],
-        "A": [697, 1633],
-        "4": [770, 1209],
-        "5": [770, 1336],
-        "6": [770, 1477],
-        "B": [770, 1633],
-        "7": [852, 1209],
-        "8": [852, 1336],
-        "9": [852, 1477],
-        "C": [852, 1633],
-        "*": [941, 1209],
-        "0": [941, 1336],
-        "#": [941, 1477],
-        "D": [941, 1633],
+        (697, 1209): "1",
+        (697, 1336): "2",
+        (697, 1477): "3",
+        (697, 1633): "A",
+        (770, 1209): "4",
+        (770, 1336): "5",
+        (770, 1477): "6",
+        (770, 1633): "B",
+        (852, 1209): "7",
+        (852, 1336): "8",
+        (852, 1477): "9",
+        (852, 1633): "C",
+        (941, 1209): "*",
+        (941, 1336): "0",
+        (941, 1477): "#",
+        (941, 1633): "D",
     }
-    print(f"{sound}: {maxima[0]}, {maxima[1]}")
+    #print(f"closest {close_low} {close_high}")
+    print(f"{sound}: {maxima[0]}, {maxima[1]}: {keypad[(close_low, close_high)]}")
 
 
 def find_maxima():
@@ -65,16 +71,6 @@ def graph():
 
 
 sounds = os.listdir("project data")
-
-"""
-calculate fourier transform, frequency bins
-
-filter out results with an x value of < 0
-
-get absolute value of results
-
-store as wave
-"""
 
 for sound in sounds:
     sampling_rate, in_wave = read(f"project data/{sound}")
